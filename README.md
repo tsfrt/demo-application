@@ -288,6 +288,6 @@ In order to accomplish these checks we expose the server port 8080 and configure
 
 [Spring Cloud Kubernetes Repo - check out the examples](https://github.com/spring-cloud/spring-cloud-kubernetes)
 
-[Actuator](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html)
+[Actuator Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html)
 
 
