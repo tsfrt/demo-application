@@ -1,6 +1,6 @@
 # spring-k8s-demo
 
-A simple Spring Kubernetes app for demo using gradle.  Adapted from these [Examples.](https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples)
+A simple Spring Kubernetes app for demo using gradle.  Adapted from these [Examples.](https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples).  Note that many of the steps taken in this demo are best performed by your CICD tool of choice.  This demo is intended to walk through some of Spring Boot and Spring Cloud Kubernetes' capabilites when running in a Kubernetes Cluster. 
 
 ## Preparing My Spring Boot App for Kubernetes
 In order to take advantage of Spring Cloud Kubernetes, there are some configuration changes that must be made to my application.  It is important to note that these changes will not prevent my application from running outside of Kubernetes in keeping with [12 Factor](https://12factor.net/) principles.  These configurations just make it possible for my application to consume configuration from the environment in a Kubernetes context.
@@ -210,9 +210,74 @@ Kubernetes has a concept of Liveness and Readiness for containers running within
 
 Spring Boot Actuator has several built HTTP resources that can be used to determine the state of the running container to ensure that it is ready and healthy.  Actuator does a lot more that this, check it here [Actuator](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html)
 
+In the following Kubernetes Deployment, we have configured the pods to check actuator's HTTP endpoints for Readiness and Liveness.
 
+```yaml
 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-k8s-demo
+  labels:
+    app: spring-k8s-demo-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: spring-k8s-demo-app
+  template:
+    metadata:
+      labels:
+        app: spring-k8s-demo-app
+    spec:
+      volumes:
+      - name: app-secrets
+        secret:
+          secretName: app-secret
+      serviceAccountName: spring-app
+      imagePullSecrets:
+        - name: tsfrt-pivotal
+      containers:
+        - image: harbor.tsfrt-pivotal.info/k8s-demo/spring-k8s-demo:0.0.1-SNAPSHOT
+          name: spring-k8s-demo-cont
+          volumeMounts:
+          - name: app-secrets
+            mountPath: "/etc/secrets"
+            readOnly: true
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 9779
+              name: prometheus
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 180
+            successThreshold: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            successThreshold: 1
+          securityContext:
+            privileged: false
+          resources:
+            limits:
+              memory: "257Mi"
+              cpu: "500m"
 
+```
+
+In order to accomplish these checks we expose the server port 8080 and configure the web resource `path: /actuator/health`, which is a standard Actuator endpoint.  The Spring Boot Application will have to of started in order for `/actuator/health` to return a 200 status code.  These prevents the cluster from directing traffic to a containter prematurely and thus avoiding any end user down time.
 
 
 ## References
@@ -222,5 +287,7 @@ Spring Boot Actuator has several built HTTP resources that can be used to determ
 [Creating Docker Images with Spring Boot](https://spring.io/blog/2020/01/27/creating-docker-images-with-spring-boot-2-3-0-m1)
 
 [Spring Cloud Kubernetes Repo - check out the examples](https://github.com/spring-cloud/spring-cloud-kubernetes)
+
+[Actuator](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html)
 
 
