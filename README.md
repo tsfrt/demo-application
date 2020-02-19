@@ -2,6 +2,181 @@
 
 A simple Spring Kubernetes app for demo using gradle.  Adapted from these [Examples.](https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples)
 
+## Preparing My Spring Boot App for Kubernetes
+In order to take advantage of Spring Cloud Kubernetes, there are some configuration changes that must be made to my application.  It is important to note that these changes will not prevent my application from running outside of Kubernetes in keeping with [12 Factor](https://12factor.net/) principles.  These configurations just make it possible for my application to consume configuration from the environment in a Kubernetes context.
+
+First, bootstrap.yaml
+
+```yaml
+
+spring:
+  application:
+    name: reload-example
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        mode: polling
+        period: 5000
+      config:
+        namespace: spring-k8s-demo
+        sources:
+          - name: app-config
+      secrets:
+        namespace: spring-k8s-demo
+        paths:
+        - /etc/secrets
+
+
+```
+
+### Reading Config from a k8s ConfigMap
+A particularly useful feature of Spring Cloud Kubernetes is making it possible to read application configuration out of a ConfigMap.  ConfigMaps decouple configuration from a pod or image and provide a great abastraction for the environemnt to expose configuration.
+
+This configuration tells our application to look for a config map named *app-config* in the namespace *spring-k8s-demo*.  Note that we are not explicitly binding the value of any particular property to the config map, just configuring the app to consume this configuration if it is present.  Within the application, our properties may be sourced from a hard coded default, an environment variable, or a properties file.  Just emphasizing that we do not need to make our application depenendant on Kubernetes as there are other contexts that we may run in with alternate mechanisms for exposing configuration.
+
+```yaml
+config:
+        namespace: spring-k8s-demo
+        sources:
+          - name: app-config
+
+```
+
+In our cluster we will create a config map as follows `kubectl create -f app-config.yaml -n spring-k8s-demo`
+
+```yaml
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  application.properties: |-
+    api.data=Elliott is a boy
+    api.version=v2
+    api.format=json
+
+```
+
+When our application starts up in our cluster with these configurations in place we can inject them into a configuration object.  Note that defaulted values will be overwrriten, so sensible defaults can be used for local dev.
+
+```java 
+
+@Configuration(proxyBeanMethods = false)
+@ConfigurationProperties(prefix = "api")
+public class ApiConfig {
+
+    private String version = "v1";
+    private String config = "default";
+    private String format = "json";
+    private String data;
+
+
+```
+
+A config object can be wired into any component accross the application.
+
+```java
+
+    @Autowired
+    private ApiConfig apiConfig;
+
+```
+
+### Reading Config from a k8s ConfigMap
+Another approach to storing configuration in Kubernetes is to use secrets. Secrets store sensitive values like username or password and connection strings.  Similar to ConfigMaps, we want a way of consuming secrets so that our application can use them.
+
+In this case we take a slightly different approach to consuming configuration exposed by secrets.  We will choose to mount our secrets as a volume within our running container and point our application at the mounted path.
+
+```yaml
+
+secrets:
+        namespace: spring-k8s-demo
+        paths:
+        - /etc/secrets
+```
+
+If we use this location (/etc/secrets) as a convention within our applications we can configure our containers to mount secrets and still maintain independence from Kubernetes, as only our Deployment/Pod definitions will need to be aware of specific secrets.
+
+```yaml
+
+...
+volumes:
+      - name: app-secrets
+        secret:
+          secretName: app-secret
+      serviceAccountName: spring-app
+      imagePullSecrets:
+        - name: tsfrt-pivotal
+      containers:
+        - image: harbor.tsfrt-pivotal.info/k8s-demo/spring-k8s-demo:0.0.1-SNAPSHOT
+          name: spring-k8s-demo-cont
+          volumeMounts:
+          - name: app-secrets
+            mountPath: "/etc/secrets"
+            readOnly: true
+...
+```
+In the example above we are mounting *app-secrets* at /etc/secrets.
+
+```yaml
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+type: Opaque
+data:
+  username: c2VjcmV0
+  password: Y29tcGxleC1wYXNzd29yZA==
+  connection: aHR0cDovL215LXNlcnZpY2UvdXJs
+```
+This will make the username, password, and connection properties available within our application.  We are now free to inject these values as such.
+
+```java
+
+...
+@Configuration(proxyBeanMethods = false)
+@ConfigurationProperties()
+public class ConnectionConfig {
+
+    private String username;
+    private String password;
+    private String connection;
+
+...
+
+```
+
+This configuration object can then be wired into our application whenever needed with the populated values.
+
+```java
+
+    @Autowired
+    private ApiConfig apiConfig;
+
+```
+### Configuration Reloading
+
+Once an application is consuming configuration from the environment, it can easily be configured to monitor for changes.  This is particularly useful if there is a dynamic configuration item that will require real-time changes without the need for a deployment.
+
+```yaml
+
+...
+cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        mode: polling
+        period: 5000
+...
+
+```
+This configuration directs Spring to poll the kubernetes configuration every 5 seconds for changes.  Changes made through editing a ConfigMap or Secret will be reflected in near real-time.
+
+See [Spring Cloud Kubernetes Documentation](https://cloud.spring.io/spring-cloud-kubernetes/reference/html/#why-do-you-need-spring-cloud-kubernetes) for detailed information on these and more paramaters.
+
 ## Building Docker Images with Spring Boot and Cloud Native Build Packs
 [For Reference](https://spring.io/blog/2020/01/27/creating-docker-images-with-spring-boot-2-3-0-m1)
 
@@ -30,6 +205,16 @@ Once my image has been built and tested I want to deploy it to a registry that m
 
 `docker push harbor.tsfrt-pivotal.info/k8s-demo/spring-k8s-demo:0.0.11-SNAPSHOT`
 
+## Monitoring Containers for Readiness and Liveness with Actuator
+Kubernetes has a concept of Liveness and Readiness for containers running within a cluster.  Liveness is a determination of a container's health; in the case of a Spring Boot Web app this may mean responding to HTTP Requests.  Related to Liveness is Readiness; Readiness is a determination when a container is marked as ready.  There is a (hopefully brief) startup time where a container is running, but the application workload is not ready to accept work and a Readiness check is used to evaluate this state.  
+
+Spring Boot Actuator has several built HTTP resources that can be used to determine the state of the running container to ensure that it is ready and healthy.  Actuator does a lot more that this, check it here [Actuator](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html)
+
+
+
+
+
+
 ## References
 
 [Spring Cloud Kubernetes Documentation](https://cloud.spring.io/spring-cloud-kubernetes/reference/html/#why-do-you-need-spring-cloud-kubernetes)
@@ -37,3 +222,5 @@ Once my image has been built and tested I want to deploy it to a registry that m
 [Creating Docker Images with Spring Boot](https://spring.io/blog/2020/01/27/creating-docker-images-with-spring-boot-2-3-0-m1)
 
 [Spring Cloud Kubernetes Repo - check out the examples](https://github.com/spring-cloud/spring-cloud-kubernetes)
+
+
