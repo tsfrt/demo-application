@@ -11,7 +11,7 @@ First, bootstrap.yaml
 
 spring:
   application:
-    name: reload-example
+    name: spring-k8s-demo
   cloud:
     kubernetes:
       reload:
