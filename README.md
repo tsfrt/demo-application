@@ -1,9 +1,9 @@
 # spring-k8s-demo
 
-A simple Spring Kubernetes app for demo using gradle.  Adapted from these [Examples.](https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples).  Note that many of the steps taken in this demo are best performed by your CICD tool of choice.  This demo is intended to walk through some of Spring Boot and Spring Cloud Kubernetes' capabilites when running in a Kubernetes Cluster. 
+A simple Spring Kubernetes app for demo using gradle.  Adapted from these [Examples](https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples).  Note that many of the steps taken in this demo are best performed by your CICD tool of choice.  This demo is intended to walk through some of Spring Boot and Spring Cloud Kubernetes' capabilites when running in a Kubernetes Cluster. 
 
 ## Preparing My Spring Boot App for Kubernetes
-In order to take advantage of Spring Cloud Kubernetes, there are some configuration changes that must be made to my application.  It is important to note that these changes will not prevent my application from running outside of Kubernetes in keeping with [12 Factor](https://12factor.net/) principles.  These configurations just make it possible for my application to consume configuration from the environment in a Kubernetes context.
+In order to take advantage of Spring Cloud Kubernetes, there are some configuration changes that must be made to your application.  It is important to note that these changes will not prevent your application from running outside of Kubernetes in keeping with [12 Factor](https://12factor.net/) principles.  These configurations just make it possible for your application to consume configuration from the environment in a Kubernetes context.
 
 First, bootstrap.yaml
 
@@ -31,7 +31,7 @@ spring:
 ```
 
 ### Reading Config from a k8s ConfigMap
-A particularly useful feature of Spring Cloud Kubernetes is making it possible to read application configuration out of a ConfigMap.  ConfigMaps decouple configuration from a pod or image and provide a great abastraction for the environemnt to expose configuration.
+A particularly useful feature of Spring Cloud Kubernetes is making it possible to read application configuration out of a ConfigMap.  ConfigMaps decouple configuration from an image and provide a great abastraction for the environemnt to expose configuration.
 
 This configuration tells our application to look for a config map named *app-config* in the namespace *spring-k8s-demo*.  Note that we are not explicitly binding the value of any particular property to the config map, just configuring the app to consume this configuration if it is present.  Within the application, our properties may be sourced from a hard coded default, an environment variable, or a properties file.  Just emphasizing that we do not need to make our application depenendant on Kubernetes as there are other contexts that we may run in with alternate mechanisms for exposing configuration.
 
@@ -85,7 +85,7 @@ A config object can be wired into any component accross the application.
 ```
 
 ### Reading Config from a k8s ConfigMap
-Another approach to storing configuration in Kubernetes is to use secrets. Secrets store sensitive values like username or password and connection strings.  Similar to ConfigMaps, we want a way of consuming secrets so that our application can use them.
+Another approach to storing configuration in Kubernetes is to use secrets. Secrets store sensitive values like username or password, and connection strings.  Similar to ConfigMaps, we want a way of consuming secrets so that our application can use them.
 
 In this case we take a slightly different approach to consuming configuration exposed by secrets.  We will choose to mount our secrets as a volume within our running container and point our application at the mounted path.
 
@@ -97,8 +97,8 @@ secrets:
         - /etc/secrets
 ```
 
-If we use this location (/etc/secrets) as a convention within our applications we can configure our containers to mount secrets and still maintain independence from Kubernetes, as only our Deployment/Pod definitions will need to be aware of specific secrets.
-
+If we use this location (/etc/secrets) as a convention within our applications we can configure our containers to mount secrets and still maintain independence from Kubernetes, as only our Deployment/Pod definitions will need to be aware of specific secrets.  We are mounting a secret named *app-secret* in a volume named *app-secrets*, in this case.
+ 
 ```yaml
 
 ...
@@ -153,8 +153,8 @@ This configuration object can then be wired into our application whenever needed
 
 ```java
 
-    @Autowired
-    private ApiConfig apiConfig;
+   @Autowired
+   private ConnectionConfig connectionConfig;
 
 ```
 ### Configuration Reloading
