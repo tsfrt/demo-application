@@ -1,6 +1,6 @@
 spring:
   application:
-    name: reload-example
+    name: spring-k8s-deno
   cloud:
     kubernetes:
       reload:
@@ -14,9 +14,7 @@ spring:
       secrets:
         namespace: spring-k8s-demo
         paths:
-        - /etc/secrets/username
-        - /etc/secrets/password
-        - /etc/secrets/connection
+        - /etc/secrets
 
             
             
