@@ -1,19 +1,11 @@
 package io.tsfrt.tsa.demo.tdm.config;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @ConfigurationProperties(prefix = "api")
 public class ApiConfig {
-
-    @PostConstruct
-    public void test() {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>init APICONFIG");
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>data " + this.data);
-    }
 
     private String version = "v1";
     private String config = "default";
@@ -50,6 +42,11 @@ public class ApiConfig {
 
     public void setData(final String data) {
         this.data = data;
+    }
+
+    @Override
+    public String toString() {
+        return "ApiConfig [config=" + config + ", data=" + data + ", format=" + format + ", version=" + version + "]";
     }
 
 }

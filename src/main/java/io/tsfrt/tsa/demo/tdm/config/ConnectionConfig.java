@@ -1,18 +1,11 @@
 package io.tsfrt.tsa.demo.tdm.config;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @ConfigurationProperties()
 public class ConnectionConfig {
-
-    @PostConstruct
-    public void test() {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>"+this.toString());
-    }
 
     private String username;
     private String password;
