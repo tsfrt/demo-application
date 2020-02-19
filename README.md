@@ -3,6 +3,7 @@
 A simple Spring Kubernetes app for demo using gradle.  Adapted from these [Examples](https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples).  This demo is intended to walk through some of Spring Boot and Spring Cloud Kubernetes' capabilites when running in a Kubernetes Cluster.  Note that many of the steps taken in this demo are best performed by your CICD tool of choice.
 
 ## Preparing My Spring Boot App for Kubernetes
+
 In order to take advantage of Spring Cloud Kubernetes, there are some configuration changes that must be made to your application.  It is important to note that these changes will not prevent your application from running outside of Kubernetes in keeping with [12 Factor](https://12factor.net/) principles.  These configurations just make it possible for your application to consume configuration from the environment in a Kubernetes context.
 
 First, bootstrap.yaml
