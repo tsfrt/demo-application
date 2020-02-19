@@ -30,7 +30,7 @@ spring:
 
 ```
 
-### Reading Config from a k8s ConfigMap
+### Reading Config from a k8s ConfigMaps
 A particularly useful feature of Spring Cloud Kubernetes is making it possible to read application configuration out of a ConfigMap.  ConfigMaps decouple configuration from an image and provide a great abastraction for the environemnt to expose configuration.
 
 This configuration tells our application to look for a config map named *app-config* in the namespace *spring-k8s-demo*.  Note that we are not explicitly binding the value of any particular property to the config map, just configuring the app to consume this configuration if it is present.  Within the application, our properties may be sourced from a hard coded default, an environment variable, or a properties file.  Just emphasizing that we do not need to make our application depenendant on Kubernetes as there are other contexts that we may run in with alternate mechanisms for exposing configuration.
@@ -84,7 +84,7 @@ A config object can be wired into any component accross the application.
 
 ```
 
-### Reading Config from a k8s ConfigMap
+### Reading Config from a k8s Secrets
 Another approach to storing configuration in Kubernetes is to use secrets. Secrets store sensitive values like username or password, and connection strings.  Similar to ConfigMaps, we want a way of consuming secrets so that our application can use them.
 
 In this case we take a slightly different approach to consuming configuration exposed by secrets.  We will choose to mount our secrets as a volume within our running container and point our application at the mounted path.
