@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: reload-example
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        mode: polling
+        period: 5000
+      config:
+        namespace: spring-k8s-demo
+        sources:
+          - name: app-config
+      secrets:
+        namespace: spring-k8s-demo
+        paths:
+        - /etc/secrets/username
+        - /etc/secrets/password
+        - /etc/secrets/connection
+
+            
+            
+            

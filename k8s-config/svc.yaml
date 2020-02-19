@@ -1,0 +1,35 @@
+{
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+        "creationTimestamp": "2020-02-18T19:54:45Z",
+        "labels": {
+            "app": "spring-k8s-demo-app"
+        },
+        "name": "spring-k8s-demo-service",
+        "namespace": "spring-k8s-demo",
+        "resourceVersion": "476612",
+        "selfLink": "/api/v1/namespaces/spring-k8s-demo/services/spring-k8s-demo-service",
+        "uid": "e965e9aa-b8f6-49c2-9063-82920a8fd31f"
+    },
+    "spec": {
+        "clusterIP": "10.100.200.81",
+        "externalTrafficPolicy": "Cluster",
+        "ports": [
+            {
+                "nodePort": 30955,
+                "port": 8080,
+                "protocol": "TCP",
+                "targetPort": 8080
+            }
+        ],
+        "selector": {
+            "app": "spring-k8s-demo-app"
+        },
+        "sessionAffinity": "None",
+        "type": "NodePort"
+    },
+    "status": {
+        "loadBalancer": {}
+    }
+}

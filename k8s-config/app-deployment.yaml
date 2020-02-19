@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-k8s-demo
+  labels:
+    app: spring-k8s-demo-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: spring-k8s-demo-app
+  template:
+    metadata:
+      labels:
+        app: spring-k8s-demo-app
+    spec:
+      volumes:
+      - name: app-secrets
+        secret:
+          secretName: app-secret
+      serviceAccountName: spring-app
+      imagePullSecrets:
+        - name: tsfrt-pivotal
+      containers:
+        - image: harbor.tsfrt-pivotal.info/k8s-demo/spring-k8s-demo:0.0.1-SNAPSHOT
+          name: spring-k8s-demo-cont
+          volumeMounts:
+          - name: app-secrets
+            mountPath: "/etc/secrets"
+            readOnly: true
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 9779
+              name: prometheus
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 180
+            successThreshold: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            successThreshold: 1
+          securityContext:
+            privileged: false
+          resources:
+            limits:
+              memory: "257Mi"
+              cpu: "500m"

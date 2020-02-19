@@ -1,0 +1,38 @@
+plugins {
+	id "org.springframework.boot" version "2.3.0.M2"
+	id "io.spring.dependency-management" version "1.0.9.RELEASE"
+	id "java"
+}
+
+group = "io.tsfrt.tsa.demo"
+version = "0.0.12-SNAPSHOT"
+sourceCompatibility = "1.8"
+
+def springBootVersion = "2.2.1.RELEASE"
+def springCloudVersion = "1.1.0.RELEASE"
+
+repositories {
+	mavenCentral()
+	maven { url "https://repo.spring.io/milestone" }
+}
+
+dependencies {
+	implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+	implementation "org.springframework.boot:spring-boot-starter:${springBootVersion}"
+	implementation "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
+	implementation "org.springframework.cloud:spring-cloud-starter-kubernetes-config:${springCloudVersion}"
+	testImplementation("org.springframework.boot:spring-boot-starter-test${springBootVersion}") {
+		exclude group: "org.junit.vintage", module: "junit-vintage-engine"
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
+
+bootBuildImage {
+	imageName = "harbor.tsfrt-pivotal.info/k8s-demo/${rootProject.name}:${project.version}"
+	//environment = ["BP_JAVA_VERSION" : "13.0.1"]
+	cleanCache = true
+	verboseLogging = true
+}

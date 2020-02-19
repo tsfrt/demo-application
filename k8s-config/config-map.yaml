@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  application.properties: |-
+    api.data=Elliot is a another animal
+    api.version=v2
+    api.format=json
+
+
+
