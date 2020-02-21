@@ -271,9 +271,6 @@ spec:
             - containerPort: 8080
               name: http
               protocol: TCP
-            - containerPort: 9779
-              name: prometheus
-              protocol: TCP
           livenessProbe:
             failureThreshold: 3
             httpGet:
