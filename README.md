@@ -2,6 +2,32 @@
 
 A simple Spring Kubernetes app for demo using gradle.  Adapted from these [Examples](https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples).  This demo is intended to walk through some of Spring Boot and Spring Cloud Kubernetes' capabilites when running in a Kubernetes Cluster.  Note that many of the steps taken in this demo are best performed by your CICD tool of choice.
 
+## General Guidance for running Java in a container
+
+Pivotal Recomends using an Ubuntu based AdoptOpenJdk based image:
+* Upstream build of OpenJDK
+* GLIBC compatibility (unlike alpine)
+* slim images are ~250MB, not far from full a 200MB Alpine image
+
+Use cloud native build packs to build images:
+* Pull from a curated set of middleware
+* standardize build process and container dependencies
+
+If you roll your own docker file, unpack fat jars accross multiple layers for improve build performance:
+* Tools like Jib from google have been enabling multi layer jars
+* Spring Boot now exposes this capability natively
+* Remove a tool from you chain and consolidate
+
+Use Java 8u191 or later to ensure that java is observing resource limits:
+* Earlier versions of java looked at the physical box to determine resource availability
+* Java has adapted to follow cpu and memory resources defined in a container spec
+
+Faster Java startup lower memory consumption:
+* Look at OpenJ9 JDK for faster starup and lower memory consumption
+* Reduce JIT optimization
+* Lazy load dependencies
+* Utilize application class-data sharing 
+
 ## Preparing My Spring Boot App for Kubernetes
 
 In order to take advantage of Spring Cloud Kubernetes, there are some configuration changes that must be made to your application.  It is important to note that these changes will not prevent your application from running outside of Kubernetes in keeping with [12 Factor](https://12factor.net/) principles.  These configurations just make it possible for your application to consume configuration from the environment in a Kubernetes context.
@@ -27,8 +53,6 @@ spring:
         namespace: spring-k8s-demo
         paths:
         - /etc/secrets
-
-
 ```
 
 ### Reading Config from a k8s ConfigMap
@@ -57,7 +81,6 @@ data:
     api.data=Elliott is a boy
     api.version=v2
     api.format=json
-
 ```
 
 When our application starts up in our cluster with these configurations in place we can inject them into a configuration object.  Note that defaulted values will be overwrriten, so sensible defaults can be used for local dev.
@@ -72,8 +95,6 @@ public class ApiConfig {
     private String config = "default";
     private String format = "json";
     private String data;
-
-
 ```
 
 A config object can be wired into any component accross the application.
