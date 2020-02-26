@@ -22,7 +22,7 @@ spec:
       imagePullSecrets:
         - name: tsfrt-pivotal
       containers:
-        - image: harbor.tsfrt-pivotal.info/k8s-demo/spring-k8s-demo:0.0.1-SNAPSHOT
+        - image: harbor.tsfrt-pivotal.info/k8s-demo/spring-k8s-demo:0.0.14-SNAPSHOT
           name: spring-k8s-demo-cont
           volumeMounts:
           - name: app-secrets
