@@ -1,6 +1,7 @@
-# spring-k8s-demo
+# Spring Cloud Kubernetes
+Kubernetes has become the defacto runtime for containerized workloads.  Spring is making it easy to port your existing Spring applications over or build new ones!  
 
-A simple Spring Kubernetes app for demo using gradle.  Adapted from these [Examples](https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples).  This demo is intended to walk through some of Spring Boot and Spring Cloud Kubernetes' capabilites when running in a Kubernetes Cluster.  Note that many of the steps taken in this demo are best performed by your CICD tool of choice.
+The following descibes a simple Spring Cloud Kubernetes app for demo using gradle.  Adapted from these [Examples](https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples).  This demo is intended to walk through some of Spring Boot and Spring Cloud Kubernetes' capabilites when running in a Kubernetes Cluster.  Note that many of the steps taken in this demo are best performed by your CICD tool of choice.
 
 ## General Guidance for running Java in a container
 
